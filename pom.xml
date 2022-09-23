@@ -107,7 +107,7 @@
             <relocations>
               <relocation>
                 <pattern>org.bstats</pattern>
-                <shadedPattern>me.name.util</shadedPattern>
+                <shadedPattern>me.nathanfallet.replica.utils</shadedPattern>
               </relocation>
             </relocations>
           </configuration>
