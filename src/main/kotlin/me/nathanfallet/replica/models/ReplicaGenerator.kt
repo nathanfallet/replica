@@ -5,16 +5,16 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- * 
+ *
  */
 
 package me.nathanfallet.replica.models
@@ -34,15 +34,15 @@ class ReplicaGenerator: ChunkGenerator() {
     override fun getDefaultPopulators(world: World): List<BlockPopulator> {
         return listOf()
     }
-    
+
     override fun canSpawn(world: World, x: Int, z: Int): Boolean {
         return true
     }
-    
+
     fun xyzToByte(x: Int, y: Int, z: Int): Int {
         return (x * 16 + z) * 128 + y
     }
-    
+
     override fun generateChunkData(world: World, random: Random, chunkX: Int, chunkZ: Int, biome: BiomeGrid): ChunkData {
         val chunk = createChunkData(world)
         if (chunkX >= 0 && chunkX % Replica.distance == 0 && chunkZ % 2 == 0 && chunkZ >= 0 && chunkZ < 40) {
