@@ -34,7 +34,7 @@ object PlayerCommandPreprocess: Listener {
 
 	@EventHandler
 	fun onPlayerCommandPreprocess(e: PlayerCommandPreprocessEvent) {
-		val zp = Replica.instance?.getPlayer(e.player.uniqueId)?.takeIf { 
+		val zp = Replica.instance?.getPlayer(e.player.uniqueId)?.takeIf {
 			it.currentGame != 0
 		} ?: return
 		Replica.instance?.games?.find {

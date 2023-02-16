@@ -34,7 +34,7 @@ object PlayerRespawn: Listener {
 
 	@EventHandler
 	fun onPlayerRespawn(e: PlayerRespawnEvent) {
-		val zp = Replica.instance?.getPlayer(e.player.uniqueId)?.takeIf { 
+		val zp = Replica.instance?.getPlayer(e.player.uniqueId)?.takeIf {
 			it.currentGame != 0
 		} ?: return
 		val game = Replica.instance?.games?.find {
