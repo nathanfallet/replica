@@ -28,7 +28,7 @@ data class ZabriPlayer(
     var currentGame: Int,
     var buildmode: Boolean,
     var playing: Boolean,
-    var finish: Boolean,
+    var finished: Boolean,
     var plot: Int,
     val scoreboard: PlayerScoreboard
 ) {

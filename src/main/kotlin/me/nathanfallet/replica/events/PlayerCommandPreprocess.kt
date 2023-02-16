@@ -30,27 +30,19 @@ import me.nathanfallet.replica.models.Game
 import me.nathanfallet.replica.models.ZabriPlayer
 import me.nathanfallet.replica.models.GameState
 
-class PlayerCommandPreprocess: Listener {
+object PlayerCommandPreprocess: Listener {
 
 	@EventHandler
 	fun onPlayerCommandPreprocess(e: PlayerCommandPreprocessEvent) {
-		val zp = Replica.instance?.getPlayer(e.player.uniqueId)
-		if (zp?.currentGame != 0) {
-			Replica.instance?.games?.forEach { game ->
-				if (game.id == zp?.currentGame && game.state == GameState.inGame) {
-					game.allPlayers.forEach { uuid ->
-						if (e.player.uniqueId == uuid) {
-							if (!e.message.equals("/replica leave", ignoreCase = true)) {
-								e.setCancelled(true)
-								e.player.sendMessage(
-									"§c" + Replica.instance?.messages?.get("cmd-error-only-leave")
-                                )
-							}
-							return
-						}
-					}
-				}
-			}
+		val zp = Replica.instance?.getPlayer(e.player.uniqueId)?.takeIf { 
+			it.currentGame != 0
+		} ?: return
+		Replica.instance?.games?.find {
+			it.id == zp.currentGame && it.state == GameState.inGame
+		} ?: return
+		if (!e.message.equals("/replica leave", ignoreCase = true)) {
+			e.setCancelled(true)
+			e.player.sendMessage("§c" + Replica.instance?.messages?.get("cmd-error-only-leave"))
 		}
 	}
 

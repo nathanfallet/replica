@@ -24,14 +24,12 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageEvent
 
-class EntityDamage: Listener {
+object EntityDamage: Listener {
 
 	@EventHandler
 	fun onEntityDamage(e: EntityDamageEvent) {
-		if (e.entity is Player) {
-			if (e.entity.world.name == "Replica" && e.entity.location.y > 0) {
-				e.setCancelled(true)
-			}
+		if (e.entity is Player && e.entity.world.name == "Replica" && e.entity.location.y > 0) {
+			e.setCancelled(true)
 		}
 	}
 

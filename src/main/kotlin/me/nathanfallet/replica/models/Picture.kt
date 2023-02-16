@@ -26,4 +26,7 @@ data class Picture(
 
     constructor(name: String) : this(name, mutableMapOf())
 
+    val colors: List<Int>
+        get() = blocks.values.distinct()
+
 }

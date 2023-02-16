@@ -40,12 +40,6 @@ import me.nathanfallet.replica.commands.Cmd
 import me.nathanfallet.replica.events.*
 import me.nathanfallet.replica.models.*
 
-import com.comphenix.protocol.PacketType
-import com.comphenix.protocol.ProtocolLibrary
-import com.comphenix.protocol.events.PacketContainer
-import com.comphenix.protocol.wrappers.EnumWrappers.TitleAction
-import com.comphenix.protocol.wrappers.WrappedChatComponent
-
 class Replica: JavaPlugin() {
 
 	companion object {
@@ -75,16 +69,16 @@ class Replica: JavaPlugin() {
 	}
 
 	fun joinPlayer(player: Player, game: Game) {
-		if (game.state == GameState.waiting || game.state == GameState.startCount) {
-			if (game.players.size < 10) {
-				getPlayer(player.uniqueId)!!.currentGame = game.id
-				player.sendMessage("§a" + messages.get("chat-game-join").replace("%d", game.id.toString() + ""))
-			} else {
-				player.sendMessage("§c" + messages.get("chat-game-full"))
-			}
-		} else {
+		if (game.state != GameState.waiting && game.state != GameState.startCount) {
 			player.sendMessage("§c" + messages.get("chat-game-full"))
+			return
 		}
+		if (game.players.size >= 10) {
+			player.sendMessage("§c" + messages.get("chat-game-full"))
+			return
+		}
+		getPlayer(player.uniqueId)!!.currentGame = game.id
+		player.sendMessage("§a" + messages.get("chat-game-join").replace("%d", game.id.toString() + ""))
 	}
 
 	override fun onEnable() {
@@ -134,20 +128,20 @@ class Replica: JavaPlugin() {
 		var i = 1
 		val gamesFile = YamlConfiguration.loadConfiguration(File(getDataFolder(), "games.yml"))
 		gamesFile.getKeys(false).forEach { key ->
-			if (i <= gamesAmount) {
-				val game = Game(i)
-				gamesFile.getConfigurationSection(key)?.let { data ->
-					data.getKeys(false).forEach { sk ->
-						game.signs.add(Location(
-							Bukkit.getWorld(data.getString(sk + ".world") ?: Bukkit.getWorlds()[0].name),
-							data.getDouble(sk + ".x"),
-							data.getDouble(sk + ".y"),
-							data.getDouble(sk + ".z")
-						))
-					}
-				}
-				games.add(game)
+			if (i > gamesAmount) {
+				return@forEach
 			}
+			val game = Game(i)
+			val data = gamesFile.getConfigurationSection(key) ?: return@forEach
+			data.getKeys(false).forEach { sk ->
+				game.signs.add(Location(
+					Bukkit.getWorld(data.getString(sk + ".world") ?: Bukkit.getWorlds()[0].name),
+					data.getDouble(sk + ".x"),
+					data.getDouble(sk + ".y"),
+					data.getDouble(sk + ".z")
+				))
+			}
+			games.add(game)
 			i++
 		}
 		while (i <= gamesAmount) {
@@ -183,76 +177,76 @@ class Replica: JavaPlugin() {
 		}
 
 		val pm = Bukkit.getPluginManager()
-		pm.registerEvents(PlayerJoin(), this)
-		pm.registerEvents(PlayerQuit(), this)
-		pm.registerEvents(PlayerInteract(), this)
-		pm.registerEvents(PlayerRespawn(), this)
-		pm.registerEvents(EntityDamage(), this)
-		pm.registerEvents(BlockPlace(), this)
-		pm.registerEvents(BlockBreak(), this)
-		pm.registerEvents(SignChange(), this)
-		pm.registerEvents(PlayerCommandPreprocess(), this)
+		pm.registerEvents(PlayerJoin, this)
+		pm.registerEvents(PlayerQuit, this)
+		pm.registerEvents(PlayerInteract, this)
+		pm.registerEvents(PlayerRespawn, this)
+		pm.registerEvents(EntityDamage, this)
+		pm.registerEvents(BlockPlace, this)
+		pm.registerEvents(BlockBreak, this)
+		pm.registerEvents(SignChange, this)
+		pm.registerEvents(PlayerCommandPreprocess, this)
 
-		getCommand("replica")?.setExecutor(Cmd())
+		getCommand("replica")?.setExecutor(Cmd)
 
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, Runnable {
-				games.forEach { game ->
-					val players = game.players
-					if (game.state == GameState.inGame) {
-						game.verifNext()
-					} else {
-						if (players.size > 1 && game.state == GameState.waiting) {
-							game.state = GameState.startCount
-							game.currentCountValue = countdown + 1
-						}
-						if (game.state == GameState.startCount && players.size < 2) {
-							game.state = GameState.waiting
-							game.currentCountValue = 0
-						}
-						if (game.state == GameState.startCount) {
-							game.currentCountValue = game.currentCountValue - 1
-							if (game.currentCountValue == 0) {
-								game.start()
-							} else if (game.currentCountValue == 60 || game.currentCountValue == 30
-									|| game.currentCountValue == 20 || game.currentCountValue == 10
-									|| game.currentCountValue <= 5) {
-								val pc = PacketContainer(PacketType.Play.Server.TITLE)
-								pc.getTitleActions().write(0, TitleAction.TITLE)
-								pc.getChatComponents().write(0, WrappedChatComponent.fromText("§a${game.state.text?.replace("%d", game.currentCountValue.toString())}"))
-								players.forEach { uuid ->
-									val player = Bukkit.getPlayer(uuid)
-									player?.sendMessage("§e${messages.get("chat-start-count").replace("%d", game.currentCountValue.toString())}")
-									try {
-										ProtocolLibrary.getProtocolManager().sendServerPacket(player, pc)
-									} catch (e: InvocationTargetException) {
-										e.printStackTrace()
-									}
-								}
+			games.forEach { game ->
+				val players = game.players
+				if (game.state == GameState.inGame) {
+					game.verifNext()
+				} else {
+					if (players.size > 1 && game.state == GameState.waiting) {
+						game.state = GameState.startCount
+						game.currentCountValue = countdown + 1
+					}
+					if (game.state == GameState.startCount && players.size < 2) {
+						game.state = GameState.waiting
+						game.currentCountValue = 0
+					}
+					if (game.state == GameState.startCount) {
+						game.currentCountValue = game.currentCountValue - 1
+						if (game.currentCountValue == 0) {
+							game.start()
+						} else if (
+							game.currentCountValue == 60 ||
+							game.currentCountValue == 30 ||
+							game.currentCountValue == 20 ||
+							game.currentCountValue == 10 ||
+							game.currentCountValue <= 5
+						) {
+							players.mapNotNull {
+								Bukkit.getPlayer(it)
+							}.forEach {
+								it.sendMessage("§e" + messages.get("chat-start-count").replace("%d", game.currentCountValue.toString()))
 							}
 						}
 					}
-					val lines = listOf(
-						"§b",
-						"§b§l${messages.get("sb-players")}",
-						"§f${players.size}/10",
-						"§a",
-						"§a§l${messages.get("sb-status")}",
-						"§f${game.state.text?.replace("%d", game.currentCountValue.toString())}",
-						"§e",
-						"§e§lPlugin by Nathan Fallet"
-					)
-					game.allPlayers.forEach { uuid ->
-						Bukkit.getPlayer(uuid)?.let { player ->
-							getPlayer(uuid)?.scoreboard?.update(player, lines)
-						}
-					}
-					game.updateSigns()
 				}
-				players.forEach { zp ->
-					if (zp.currentGame == 0 && zp.scoreboard.active) {
-						zp.scoreboard.kill()
-					}
+				val lines = listOf(
+					"§b",
+					"§b§l" + messages.get("sb-players"),
+					"§f${players.size}/10",
+					"§a",
+					"§a§l" + messages.get("sb-status"),
+					"§f" + game.state.text?.replace("%d", game.currentCountValue.toString()),
+					"§e",
+					"§e§lPlugin by Nathan Fallet"
+				)
+				game.allPlayers.mapNotNull {
+					val player = Bukkit.getPlayer(it)
+					val zp = getPlayer(it)
+					if (player != null && zp != null) Pair(player, zp)
+					else null
+				}.forEach { pair ->
+					pair.second.scoreboard.update(pair.first, lines)
 				}
+				game.updateSigns()
+			}
+			players.forEach { zp ->
+				if (zp.currentGame == 0 && zp.scoreboard.active) {
+					zp.scoreboard.kill()
+				}
+			}
 		}, 0, 20)
 
 		val metrics = Metrics(this, 800)
@@ -266,16 +260,16 @@ class Replica: JavaPlugin() {
 
 	override fun onDisable() {
 		games.forEach { game ->
-			game.allPlayers.forEach { uuid ->
-				Bukkit.getPlayer(uuid)?.let { player ->
-					player.sendMessage("§c${messages.get("reload-msg")}")
-					getConfig().getString("spawn-command")?.let { command ->
-						Bukkit.dispatchCommand(player, command)
-					}
-					player.gameMode = GameMode.SURVIVAL
-					player.inventory.clear()
-					player.updateInventory()
+			game.allPlayers.mapNotNull {
+				Bukkit.getPlayer(it)
+			}.forEach { player ->
+				player.sendMessage("§c" + messages.get("reload-msg"))
+				getConfig().getString("spawn-command")?.let { command ->
+					Bukkit.dispatchCommand(player, command)
 				}
+				player.gameMode = GameMode.SURVIVAL
+				player.inventory.clear()
+				player.updateInventory()
 			}
 			game.loadPlots()
 		}

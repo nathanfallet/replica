@@ -26,13 +26,11 @@ import org.bukkit.event.player.PlayerQuitEvent
 import me.nathanfallet.replica.Replica
 import me.nathanfallet.replica.models.ZabriPlayer
 
-class PlayerQuit: Listener {
+object PlayerQuit: Listener {
 
 	@EventHandler
 	fun onPlayerQuit(e: PlayerQuitEvent) {
-		val zp = Replica.instance?.getPlayer(e.player.uniqueId) ?: run {
-            return
-        }
+		val zp = Replica.instance?.getPlayer(e.player.uniqueId) ?: return
 		Replica.instance?.uninitPlayer(zp)
 	}
 

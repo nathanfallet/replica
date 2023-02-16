@@ -34,12 +34,6 @@ import org.bukkit.inventory.ItemStack
 
 import me.nathanfallet.replica.Replica
 
-import com.comphenix.protocol.PacketType
-import com.comphenix.protocol.ProtocolLibrary
-import com.comphenix.protocol.events.PacketContainer
-import com.comphenix.protocol.wrappers.EnumWrappers.TitleAction
-import com.comphenix.protocol.wrappers.WrappedChatComponent
-
 data class Game(
     val id: Int,
     var state: GameState,
@@ -70,7 +64,7 @@ data class Game(
         val i = signs.iterator()
         while (i.hasNext()) {
             val b = i.next().block
-            if (b.type == Material.OAK_SIGN) {
+            if (b.type == Material.OAK_WALL_SIGN) {
                 val s = b.state as Sign
                 s.setLine(0, "§4[Replica]")
                 s.setLine(1, Replica.instance?.messages?.get("sign-line-game")?.replace("%d", id.toString() + "") ?: id.toString())
@@ -150,7 +144,7 @@ data class Game(
 				val b = Location(
 					Bukkit.getWorld("Replica"),
 					(14 + Replica.distance * 16 * (id - 1)).toDouble(),
-					(66 + (7 - y)).toDouble(),
+					(73 - y).toDouble(),
 					(z + column * 32).toDouble()
 				).block
 				b.type = makeClay(p.blocks[Pair(z - 5, y)] ?: 0)
@@ -165,14 +159,14 @@ data class Game(
 				val b = Location(
 					Bukkit.getWorld("Replica"),
 					(14 + Replica.distance * 16 * (id - 1)).toDouble(),
-					(66 + (7 - y)).toDouble(),
-					((7 - x) + column * 32 + 5).toDouble()
+					(73 - y).toDouble(),
+					(12 - x + column * 32).toDouble()
 				).block
 				val b2 = Location(
 					Bukkit.getWorld("Replica"),
-					(5 + (7 - y) + Replica.distance * 16 * (id - 1)).toDouble(),
+					(12 - y + Replica.distance * 16 * (id - 1)).toDouble(),
 					64.0,
-					((7 - x) + column * 32 + 5).toDouble()
+					(12 - x + column * 32).toDouble()
 				).block
 				if (b.type != b2.type) {
 					return false
@@ -180,24 +174,6 @@ data class Game(
 			}
 		}
 		return true
-	}
-
-	fun containsColor(col: Int, color: Int): Boolean {
-		val column = col - 1
-		for (x in 0..7) {
-			for (y in 0..7) {
-				val b = Location(
-					Bukkit.getWorld("Replica"),
-					(14 + Replica.distance * 16 * (id - 1)).toDouble(),
-					(66 + (7 - y)).toDouble(),
-					((7 - x) + column * 32 + 5).toDouble()
-				)
-				if (b.block.type == makeClay(color)) {
-					return true
-				}
-			}
-		}
-		return false
 	}
 
 	fun start() {
@@ -210,83 +186,70 @@ data class Game(
 	}
 
 	fun stop() {
-		if (state == GameState.inGame) {
-			state = GameState.finished
-			Bukkit.getPlayer(players[0])?.let { player ->
-				Bukkit.broadcastMessage("§7${Replica.instance?.messages?.get("chat-win-public")?.replace("%s", player.name)}")
-				player.inventory.clear()
-				player.updateInventory()
-				player.gameMode = GameMode.SPECTATOR
-				val pc = PacketContainer(PacketType.Play.Server.TITLE)
-				pc.titleActions.write(0, TitleAction.TITLE)
-				pc.chatComponents.write(0, WrappedChatComponent.fromText("§a${Replica.instance?.messages?.get("chat-win-private")}"))
-				try {
-					ProtocolLibrary.getProtocolManager().sendServerPacket(player, pc)
-				} catch (e: InvocationTargetException) {
-					e.printStackTrace()
-				}
-			}
-			currentCountValue = 0
-			loadPlots()
-			Bukkit.getScheduler().scheduleSyncDelayedTask(Replica.instance!!, Runnable {
-				allPlayers.forEach { uuid ->
-					Bukkit.getPlayer(uuid)?.let { player ->
-						Replica.instance?.getPlayer(uuid)?.let { zp ->
-							zp.playing = false
-							zp.finish = false
-							zp.plot = 0
-							zp.currentGame = 0
-							Replica.instance?.getConfig()?.getString("spawn-command")?.let { command ->
-								Bukkit.dispatchCommand(player, command)
-							}
-							player.gameMode = GameMode.SURVIVAL
-							player.inventory.clear()
-							player.updateInventory()
-						}
-					}
-				}
-				state = GameState.waiting
-			}, 100)
+		if (state != GameState.inGame) {
+			return
 		}
+		state = GameState.finished
+		currentCountValue = 0
+		Bukkit.getPlayer(players[0])?.let { player ->
+			Bukkit.broadcastMessage("§7" + Replica.instance?.messages?.get("chat-win-public")?.replace("%s", player.name))
+			player.inventory.clear()
+			player.updateInventory()
+			player.gameMode = GameMode.SPECTATOR
+			player.sendMessage("§a" + Replica.instance?.messages?.get("chat-win-private"))
+		}
+		loadPlots()
+		Bukkit.getScheduler().scheduleSyncDelayedTask(Replica.instance!!, Runnable {
+			allPlayers.mapNotNull {
+				val player = Bukkit.getPlayer(it)
+				val zp = Replica.instance?.getPlayer(it)
+				if (player != null && zp != null) Pair(player, zp)
+				else null
+			}.forEach { pair ->
+				pair.second.playing = false
+				pair.second.finished = false
+				pair.second.plot = 0
+				pair.second.currentGame = 0
+				Replica.instance?.getConfig()?.getString("spawn-command")?.let { command ->
+					Bukkit.dispatchCommand(pair.first, command)
+				}
+				pair.first.gameMode = GameMode.SURVIVAL
+				pair.first.inventory.clear()
+				pair.first.updateInventory()
+			}
+			state = GameState.waiting
+		}, 100)
 	}
 
 	fun loadDraw() {
-		val players = players
-		val p = Replica.instance?.pictures?.random()
 		loadPlots()
-		draw(p, players.size)
+		val picture = Replica.instance?.pictures?.random() ?: return
 		var plot = 1
-		val pc = PacketContainer(PacketType.Play.Server.TITLE)
-		pc.titleActions.write(0, TitleAction.TITLE)
-		pc.chatComponents.write(0, WrappedChatComponent.fromText("§6${p?.name}"))
 		players.forEach { uuid ->
-			val player = Bukkit.getPlayer(uuid)
-			val zp = Replica.instance?.getPlayer(uuid)
+			val player = Bukkit.getPlayer(uuid) ?: return@forEach
+			val zp = Replica.instance?.getPlayer(uuid) ?: return@forEach
 			val l = Location(
 				Bukkit.getWorld("Replica"),
 				(4 + Replica.distance * 16 * (id - 1)).toDouble(),
-				65.toDouble(),
+				65.0,
 				((plot - 1) * 32 + 9).toDouble()
 			)
 			l.yaw = -90f
-			player?.teleport(l)
-			player?.gameMode = GameMode.SURVIVAL
-			zp?.plot = plot
-			zp?.finish = false
-			zp?.playing = true
-			player?.inventory?.clear()
-			player?.inventory?.addItem(ItemStack(Material.IRON_PICKAXE))
-			for (i in 0..15) {
-				player?.inventory?.addItem(ItemStack(makeClay(i), 64))
+			player.teleport(l)
+			player.gameMode = GameMode.SURVIVAL
+			zp.plot = plot
+			zp.finished = false
+			zp.playing = true
+			player.inventory.clear()
+			player.inventory.addItem(ItemStack(Material.IRON_PICKAXE))
+			for (color in picture.colors) {
+				player.inventory.addItem(ItemStack(makeClay(color), 64))
 			}
-			player?.updateInventory()
-			try {
-				ProtocolLibrary.getProtocolManager().sendServerPacket(player, pc)
-			} catch (e: InvocationTargetException) {
-				e.printStackTrace()
-			}
+			player.updateInventory()
+			player.sendMessage("§6" + picture.name)
 			plot++
 		}
+		draw(picture, plot - 1)
 	}
 
 	fun verifNext() {
@@ -294,13 +257,11 @@ data class Game(
 		var number = players.size
 		var current = 0
 		var no: UUID? = null
-		players.forEach { uuid ->
-			val zp = Replica.instance?.getPlayer(uuid)
-			if (zp?.finish == true) {
-				current++
-			} else {
-				no = uuid
-			}
+		players.mapNotNull {
+			Replica.instance?.getPlayer(it)
+		}.forEach { zp ->
+			if (zp.finished) current++
+			else no = zp.uuid
 		}
 		if (number == 0 || number == 1) {
 			stop()
@@ -309,24 +270,19 @@ data class Game(
 				val nop = Bukkit.getPlayer(no!!)
 				val zp = Replica.instance?.getPlayer(no!!)
 				zp?.playing = false
-				zp?.finish = false
+				zp?.finished = false
 				zp?.plot = 0
-				allPlayers.forEach { uuid ->
-					val p = Bukkit.getPlayer(uuid)
-					p?.sendMessage("§7${Replica.instance?.messages?.get("chat-lose-public")?.replace("%s", nop?.name ?: "")}")
+				allPlayers.mapNotNull {
+					Bukkit.getPlayer(it)
+				}.forEach { player ->
+					player.sendMessage(
+						"§7" + Replica.instance?.messages?.get("chat-lose-public")?.replace("%s", nop?.name ?: "")
+					)
 				}
 				nop?.inventory?.clear()
 				nop?.updateInventory()
 				nop?.gameMode = GameMode.SPECTATOR
-				val pc = PacketContainer(PacketType.Play.Server.TITLE)
-				pc.titleActions.write(0, TitleAction.TITLE)
-				pc.chatComponents.write(0, WrappedChatComponent.fromText("§a${Replica.instance?.messages?.get("chat-lose-private")}"))
-				try {
-					ProtocolLibrary.getProtocolManager().sendServerPacket(nop, pc)
-				} catch (e: InvocationTargetException) {
-					e.printStackTrace()
-				}
-				nop?.sendMessage("§7${Replica.instance?.messages?.get("chat-lose-private")}")
+				nop?.sendMessage("§7" + Replica.instance?.messages?.get("chat-lose-private"))
 			}
 			if (number == 2) {
 				stop()
@@ -336,11 +292,9 @@ data class Game(
 		}
 	}
 
-	fun draw(picture: Picture?, limit: Int) {
-		picture?.let {
-			for (i in 1..limit) {
-				drawPlot(i, picture)
-			}
+	fun draw(picture: Picture, limit: Int) {
+		for (i in 1..limit) {
+			drawPlot(i, picture)
 		}
 	}
 

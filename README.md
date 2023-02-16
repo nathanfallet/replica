@@ -6,9 +6,6 @@ The Replica is a mini game where you have to replica the picture on the table be
 
 ## Installation
 
-You have to add [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/) on your server else the Replica doesn't work !
-Take the version which correspond to your server.
-
 ### Needed tools
 
 To install this mini game on your server, download it [here](https://www.nathanfallet.me/project/replica/download). Move the downloaded file in the folder `/plugins/` of yout server.

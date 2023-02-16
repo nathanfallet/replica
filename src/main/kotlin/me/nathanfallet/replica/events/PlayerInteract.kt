@@ -29,21 +29,17 @@ import org.bukkit.event.player.PlayerInteractEvent
 import me.nathanfallet.replica.Replica
 import me.nathanfallet.replica.models.Game
 
-class PlayerInteract: Listener {
+object PlayerInteract: Listener {
 
 	@EventHandler
 	fun onPLayerInteract(e: PlayerInteractEvent) {
-		if (e.action == Action.RIGHT_CLICK_BLOCK) {
-			if (e.clickedBlock?.type == Material.OAK_SIGN) {
-				Replica.instance?.games?.forEach { game ->
-					game.signs.forEach { location ->
-						if (e.clickedBlock?.location == location) {
-							Replica.instance?.joinPlayer(e.player, game)
-						}
-					}
-				}
-			}
+		if (e.action != Action.RIGHT_CLICK_BLOCK || e.clickedBlock?.type != Material.OAK_WALL_SIGN) {
+			return
 		}
+		val game = Replica.instance?.games?.find {
+			it.signs.any { it == e.clickedBlock?.location }
+		} ?: return
+		Replica.instance?.joinPlayer(e.player, game)
 	}
 
 }

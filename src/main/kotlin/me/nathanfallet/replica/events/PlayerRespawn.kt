@@ -30,31 +30,24 @@ import me.nathanfallet.replica.models.Game
 import me.nathanfallet.replica.models.ZabriPlayer
 import me.nathanfallet.replica.models.GameState
 
-class PlayerRespawn: Listener {
+object PlayerRespawn: Listener {
 
 	@EventHandler
 	fun onPlayerRespawn(e: PlayerRespawnEvent) {
-		val zp = Replica.instance?.getPlayer(e.player.uniqueId) ?: run {
-            return
-        }
-		if (zp.currentGame != 0) {
-			var result: Game? = null
-			Replica.instance?.games?.forEach { game ->
-				if (game.id == zp.currentGame) {
-					result = game
-				}
-			}
-			if (result != null && result?.state == GameState.inGame) {
-				val location = Location(
-                    Bukkit.getWorld("Replica"),
-					(4 + Replica.distance * 16 * (zp.currentGame - 1)).toDouble(),
-                    65.0,
-                    ((zp.plot - 1) * 32 + 9).toDouble()
-                )
-				location.yaw = -90f;
-				e.respawnLocation = location
-			}
-		}
+		val zp = Replica.instance?.getPlayer(e.player.uniqueId)?.takeIf { 
+			it.currentGame != 0
+		} ?: return
+		val game = Replica.instance?.games?.find {
+			it.id == zp.currentGame && it.state == GameState.inGame
+		} ?: return
+		val location = Location(
+            Bukkit.getWorld("Replica"),
+			(4 + Replica.distance * 16 * (game.id - 1)).toDouble(),
+            65.0,
+            ((zp.plot - 1) * 32 + 9).toDouble()
+        )
+		location.yaw = -90f
+		e.respawnLocation = location
 	}
 
 }

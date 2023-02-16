@@ -25,7 +25,7 @@ import org.bukkit.event.player.PlayerJoinEvent
 
 import me.nathanfallet.replica.Replica
 
-class PlayerJoin: Listener {
+object PlayerJoin: Listener {
 
 	@EventHandler
 	fun onPlayerJoin(e: PlayerJoinEvent) {

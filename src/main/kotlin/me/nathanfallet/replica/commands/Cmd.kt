@@ -30,90 +30,91 @@ import org.bukkit.entity.Player
 import me.nathanfallet.replica.Replica
 import me.nathanfallet.replica.models.ZabriPlayer
 
-class Cmd: CommandExecutor {
+object Cmd: CommandExecutor {
 
 	override fun onCommand(sender: CommandSender, cmd: Command, label: String, args: Array<String>): Boolean {
 		// Check that args are specified
-		if (args.size != 0) {
-			// Go to command
-			if (args[0].equals("goto", ignoreCase = true)) {
-				// Permission check
-				if (sender.hasPermission("replica.admin")) {
-					// Convert to player
-					if (sender is Player) {
-						// Teleport
-						sender.sendMessage("§c" + Replica.instance?.messages?.get("cmd-goto-success"))
-						sender.teleport(Location(Bukkit.getWorld("Replica"), 3.5, 65.0, 4.5))
-					} else {
-						// Error
-						sender.sendMessage("§c" + Replica.instance?.messages?.get("cmd-error-not-a-player"))
-					}
-				} else {
-					// Error
-					sender.sendMessage("§c" + Replica.instance?.messages?.get("cmd-error-perm"))
-				}
-			}
-			// Build mode command
-			else if (args[0].equals("buildmode", ignoreCase = true)) {
-				// Permission check
-				if (sender.hasPermission("replica.admin")) {
-					// Convert to player
-					if (sender is Player) {
-						Replica.instance?.getPlayer(sender.getUniqueId())?.let { zp ->
-							// Set buildmode
-							zp.buildmode = !zp.buildmode
-							sender.sendMessage("§c" + Replica.instance?.messages?.get(if (zp.buildmode) "cmd-buildmode-enable" else "cmd-buildmode-disable"))
-						}
-					} else {
-						// Error
-						sender.sendMessage("§c" + Replica.instance?.messages?.get("cmd-error-not-a-player"))
-					}
-				} else {
-					// Error
-					sender.sendMessage("§c" + Replica.instance?.messages?.get("cmd-error-perm"))
-				}
-			}
-			// Leave command
-			else if (args[0].equals("leave", ignoreCase = true)) {
-				// Convert to player
-				if (sender is Player) {
-					val zp = Replica.instance?.getPlayer(sender.getUniqueId())
-					if (zp?.currentGame != 0) {
-						// Leave game
-						zp?.currentGame = 0
-						zp?.playing = false
-						zp?.finish = false
-						zp?.plot = 0
-						Replica.instance?.getConfig()?.getString("spawn-command")?.let { command ->
-                            Bukkit.dispatchCommand(sender, command)
-                        }
-						sender.gameMode = GameMode.SURVIVAL
-						sender.inventory.clear()
-						sender.updateInventory()
-					} else {
-						// Error
-						sender.sendMessage("§c" + Replica.instance?.messages?.get("chat-no-game"))
-					}
-				} else {
-					// Error
-					sender.sendMessage("§c" + Replica.instance?.messages?.get("cmd-error-not-a-player"))
-				}
-			}
-			// Command not found, send help
-			else {
-				sendHelp(sender, label)
-			}
-		} else {
+		if (args.size == 0) {
 			sendHelp(sender, label)
+			return true
 		}
+		
+		// Go to command
+		if (args[0].equals("goto", ignoreCase = true)) {
+			// Permission check
+			if (!sender.hasPermission("replica.admin")) {
+				sender.sendMessage("§c" + Replica.instance?.messages?.get("cmd-error-perm"))
+				return true
+			}
+			// Convert to player
+			if (sender !is Player) {
+				sender.sendMessage("§c" + Replica.instance?.messages?.get("cmd-error-not-a-player"))
+				return true
+			}
+			sender.sendMessage("§c" + Replica.instance?.messages?.get("cmd-goto-success"))
+			sender.teleport(Location(Bukkit.getWorld("Replica"), 3.5, 65.0, 4.5))
+			return true
+		}
+		// Build mode command
+		if (args[0].equals("buildmode", ignoreCase = true)) {
+			// Permission check
+			if (!sender.hasPermission("replica.admin")) {
+				sender.sendMessage("§c" + Replica.instance?.messages?.get("cmd-error-perm"))
+				return true
+			}
+			// Convert to player
+			if (sender !is Player) {
+				sender.sendMessage("§c" + Replica.instance?.messages?.get("cmd-error-not-a-player"))
+				return true
+			}
+			Replica.instance?.getPlayer(sender.getUniqueId())?.let { zp ->
+				// Set buildmode
+				zp.buildmode = !zp.buildmode
+				sender.sendMessage("§c" + Replica.instance?.messages?.get(
+					if (zp.buildmode) "cmd-buildmode-enable"
+					else "cmd-buildmode-disable"
+				))
+			}
+			return true
+		}
+		// Leave command
+		if (args[0].equals("leave", ignoreCase = true)) {
+			// Convert to player
+			if (sender !is Player) {
+				sender.sendMessage("§c" + Replica.instance?.messages?.get("cmd-error-not-a-player"))
+				return true
+			}
+			val zp = Replica.instance?.getPlayer(sender.getUniqueId())?.takeIf {
+				it.currentGame != 0
+			} ?: run {
+				sender.sendMessage("§c" + Replica.instance?.messages?.get("chat-no-game"))
+				return true
+			}
+			// Leave game
+			zp.currentGame = 0
+			zp.playing = false
+			zp.finished = false
+			zp.plot = 0
+			Replica.instance?.getConfig()?.getString("spawn-command")?.let { command ->
+                Bukkit.dispatchCommand(sender, command)
+            }
+			sender.gameMode = GameMode.SURVIVAL
+			sender.inventory.clear()
+			sender.updateInventory()
+			return true
+		}
+
+		// Command not found, send help
+		sendHelp(sender, label)
 		return true
 	}
 
 	fun sendHelp(sender: CommandSender, label: String) {
 		if (sender.hasPermission("replica.admin")) {
-			sender.sendMessage("§e/" + label + " goto : " + Replica.instance?.messages?.get("cmd-help-goto")
-					+ "\n" + "§e/" + label + " buildmode : "
-					+ Replica.instance?.messages?.get("cmd-help-buildmode") + "\n")
+			sender.sendMessage(
+				"§e/" + label + " goto : " + Replica.instance?.messages?.get("cmd-help-goto") + "\n" +
+				"§e/" + label + " buildmode : " + Replica.instance?.messages?.get("cmd-help-buildmode") + "\n"
+			)
 		}
 		sender.sendMessage("§e/" + label + " leave : " + Replica.instance?.messages?.get("cmd-help-leave"))
 	}

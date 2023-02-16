@@ -25,37 +25,32 @@ import org.bukkit.event.block.SignChangeEvent
 
 import me.nathanfallet.replica.Replica
 import me.nathanfallet.replica.models.Game
+import kotlin.text.toInt
 
-class SignChange: Listener {
+object SignChange: Listener {
 
 	@EventHandler
 	fun onSignChange(e: SignChangeEvent) {
-		if (e.getLine(0).equals("[Replica]")) {
-			if (e.player.hasPermission("replica.admin")) {
-				try {
-					val id = Integer.parseInt(e.getLine(1))
-					var result: Game? = null
-					Replica.instance?.games?.forEach { game ->
-						if (game.id == id) {
-							result = game
-						}
-					}
-					if (result == null) {
-						throw NumberFormatException()
-					}
-					result?.signs?.add(e.block.location)
-				} catch (ex: NumberFormatException) {
-					e.setCancelled(true);
-					e.getPlayer().sendMessage(
-                        "§c" + Replica.instance?.messages?.get("sign-error-invalid-line")
-                    )
-				}
-			} else {
-				e.getPlayer().sendMessage(
-                    "§c" + Replica.instance?.messages?.get("sign-error-perm")
-                )
-			}
+		if (e.getLine(0) != "[Replica]") {
+			return
 		}
+		if (!e.player.hasPermission("replica.admin")) {
+			e.getPlayer().sendMessage(
+                "§c" + Replica.instance?.messages?.get("sign-error-perm")
+            )
+			e.setCancelled(true)
+			return
+		}
+		val id = e.getLine(1)?.toIntOrNull() ?: run {
+			e.getPlayer().sendMessage(
+				"§c" + Replica.instance?.messages?.get("sign-error-invalid-line")
+			)
+			e.setCancelled(true)
+			return
+		}
+		Replica.instance?.games?.find { game ->
+			game.id == id
+		}?.signs?.add(e.block.location)
 	}
 
 }

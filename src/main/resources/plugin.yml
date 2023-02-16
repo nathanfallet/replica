@@ -19,7 +19,6 @@ version: 1.3.4
 author: Nathan Fallet
 main: me.nathanfallet.replica.Replica
 api-version: 1.19
-depend: [ProtocolLib]
 commands:
     replica:
         description: Gestion du Replica
