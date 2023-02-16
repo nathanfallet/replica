@@ -1,4 +1,4 @@
-# Copyright (C) 2020 FALLET Nathan
+# Copyright (C) 2023 FALLET Nathan
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,10 +15,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 name: Replica
-version: 1.3.3
-author: ZabriCraft
-main: fr.zabricraft.replica.Replica
-api-version: 1.18
+version: 1.3.4
+author: Nathan Fallet
+main: me.nathanfallet.replica.Replica
+api-version: 1.19
 depend: [ProtocolLib]
 commands:
     replica:

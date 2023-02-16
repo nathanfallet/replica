@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2020 FALLET Nathan
+ *  Copyright (C) 2023 FALLET Nathan
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,22 +17,21 @@
  * 
  */
 
-package me.nathanfallet.replica.events;
+package me.nathanfallet.replica.events
 
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.entity.EntityDamageEvent
 
-import me.nathanfallet.replica.Replica;
-import me.nathanfallet.replica.utils.Updater;
-
-public class PlayerJoin implements Listener {
+class EntityDamage: Listener {
 
 	@EventHandler
-	public void onPlayerJoin(PlayerJoinEvent e) {
-		Replica.getInstance().initPlayer(e.getPlayer());
-		if (e.getPlayer().hasPermission("craftsearch.update")) {
-			Updater.checkForUpdate(Replica.getInstance(), e.getPlayer());
+	fun onEntityDamage(e: EntityDamageEvent) {
+		if (e.entity is Player) {
+			if (e.entity.world.name == "Replica" && e.entity.location.y > 0) {
+				e.setCancelled(true)
+			}
 		}
 	}
 

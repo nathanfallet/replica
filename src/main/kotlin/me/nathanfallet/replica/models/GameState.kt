@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2020 FALLET Nathan
+ *  Copyright (C) 2023 FALLET Nathan
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,36 +17,17 @@
  * 
  */
 
-package me.nathanfallet.replica.utils;
+package me.nathanfallet.replica.models
 
-import java.util.HashMap;
+import me.nathanfallet.replica.Replica
 
-public class Picture {
+enum class GameState(
+    val key: String
+) {
 
-	private String name;
-	private HashMap<String, Integer> blocks = new HashMap<String, Integer>();
+    waiting("stat-waiting"), startCount("stat-start-count"), inGame("stat-in-game"), finished("stat-finished");
 
-	public Picture(String name) {
-		this.name = name;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public int getBlock(int x, int y) {
-		if (blocks.containsKey(x + ":" + y)) {
-			return blocks.get(x + ":" + y);
-		}
-		return 0;
-	}
-
-	public void setBlock(int block, int x, int y) {
-		if (blocks.containsKey(x + ":" + y)) {
-			blocks.replace(x + ":" + y, block);
-		} else {
-			blocks.put(x + ":" + y, block);
-		}
-	}
+    val text: String?
+        get() = Replica.instance?.messages?.get(key)
 
 }

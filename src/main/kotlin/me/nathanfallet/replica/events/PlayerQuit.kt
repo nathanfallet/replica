@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2020 FALLET Nathan
+ *  Copyright (C) 2023 FALLET Nathan
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,29 +17,23 @@
  * 
  */
 
-package me.nathanfallet.replica.utils;
+package me.nathanfallet.replica.events
 
-import java.util.HashMap;
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerQuitEvent
 
-import org.bukkit.ChatColor;
+import me.nathanfallet.replica.Replica
+import me.nathanfallet.replica.models.ZabriPlayer
 
-public class Messages {
+class PlayerQuit: Listener {
 
-	private HashMap<String, String> messages = new HashMap<String, String>();
-
-	public void set(String id, String msg) {
-		if (messages.containsKey(id.toLowerCase())) {
-			messages.replace(id.toLowerCase(), ChatColor.translateAlternateColorCodes('&', msg));
-		} else {
-			messages.put(id.toLowerCase(), ChatColor.translateAlternateColorCodes('&', msg));
-		}
-	}
-
-	public String get(String id) {
-		if (messages.containsKey(id.toLowerCase())) {
-			return messages.get(id.toLowerCase());
-		}
-		return "Unknow message : " + id.toLowerCase() + " !";
+	@EventHandler
+	fun onPlayerQuit(e: PlayerQuitEvent) {
+		val zp = Replica.instance?.getPlayer(e.player.uniqueId) ?: run {
+            return
+        }
+		Replica.instance?.uninitPlayer(zp)
 	}
 
 }

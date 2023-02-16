@@ -19,3 +19,4 @@ Replica.jar
 
 # VSCode files
 .vscode
+.DS_Store

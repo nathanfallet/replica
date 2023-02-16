@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2020 FALLET Nathan
+ *  Copyright (C) 2023 FALLET Nathan
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,22 +17,32 @@
  * 
  */
 
-package me.nathanfallet.replica.events;
+package me.nathanfallet.replica.events
 
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.block.Action
+import org.bukkit.event.player.PlayerInteractEvent
 
-import me.nathanfallet.replica.Replica;
-import me.nathanfallet.replica.utils.ZabriPlayer;
+import me.nathanfallet.replica.Replica
+import me.nathanfallet.replica.models.Game
 
-public class PlayerQuit implements Listener {
+class PlayerInteract: Listener {
 
 	@EventHandler
-	public void onPlayerQuit(PlayerQuitEvent e) {
-		ZabriPlayer zp = Replica.getInstance().getPlayer(e.getPlayer().getUniqueId());
-		if (zp != null) {
-			Replica.getInstance().uninitPlayer(zp);
+	fun onPLayerInteract(e: PlayerInteractEvent) {
+		if (e.action == Action.RIGHT_CLICK_BLOCK) {
+			if (e.clickedBlock?.type == Material.OAK_SIGN) {
+				Replica.instance?.games?.forEach { game ->
+					game.signs.forEach { location ->
+						if (e.clickedBlock?.location == location) {
+							Replica.instance?.joinPlayer(e.player, game)
+						}
+					}
+				}
+			}
 		}
 	}
 
