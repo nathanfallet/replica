@@ -1,39 +1,38 @@
 /*
- *  Copyright (C) 2020 FALLET Nathan
+ *  Copyright (C) 2023 FALLET Nathan
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- * 
+ *
  */
 
-package me.nathanfallet.replica.events;
+package me.nathanfallet.replica.models
 
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.ChatColor
 
-public class EntityDamage implements Listener {
+data class Messages(
+    private val messages: MutableMap<String, String>
+) {
 
-	@EventHandler
-	public void onEntityDamage(EntityDamageEvent e) {
-		if (e.getEntity() instanceof Player) {
-			Player p = (Player) e.getEntity();
-			if (p.getWorld().getName().equals("Replica") && p.getLocation().getY() > 0) {
-				e.setCancelled(true);
-			}
-		}
-	}
+    constructor() : this(HashMap())
+
+    fun set(id: String, msg: String) {
+        messages[id.lowercase()] = ChatColor.translateAlternateColorCodes('&', msg)
+    }
+
+    fun get(id: String): String {
+        return messages.get(id.lowercase()) ?: "Unknow message : " + id.lowercase()
+    }
 
 }

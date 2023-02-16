@@ -1,48 +1,47 @@
-# Copyright (C) 2020 FALLET Nathan
+# Copyright (C) 2023 FALLET Nathan
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# Messages du Plugin Replica par ZabriCraft
-# Messages of the Replica plugin by ZabriCraft
+# Messages of the Replica plugin by Nathan Fallet
 
-sb-players: 'Players :'
-sb-status: 'Status :'
+sb-players: 'Players:'
+sb-status: 'Status:'
 cmd-help-goto: 'Go in the Replica world'
 cmd-help-buildmode: 'Enable/Disable the buildmode'
 cmd-help-leave: 'Leave a game'
-cmd-error-perm: 'You don''t have the permission &4replica.admin &cto use this command !'
-cmd-error-not-a-player: 'You have to be a player to do that command !'
-cmd-error-only-leave: 'You can only use the &4/replica leave &ccommand in a game !'
-cmd-goto-success: 'You were teleported in the Replica world !'
-cmd-buildmode-enable: 'You enable the buildmode'
-cmd-buildmode-disable: 'You disable the buildmode'
-sign-error-perm: 'You don''t have the permission &4replica.admin &cto use this sign !'
-sign-error-invalid-line: 'Please use a valid game number in the second line !'
+cmd-error-perm: 'You don''t have the permission &4replica.admin &cto use this command!'
+cmd-error-not-a-player: 'You have to be a player to do that command!'
+cmd-error-only-leave: 'You can only use the &4/replica leave &ccommand in a game!'
+cmd-goto-success: 'You were teleported in the Replica world!'
+cmd-buildmode-enable: 'You enabled the buildmode'
+cmd-buildmode-disable: 'You disabled the buildmode'
+sign-error-perm: 'You don''t have the permission &4replica.admin &cto use this sign!'
+sign-error-invalid-line: 'Please use a valid game number in the second line!'
 sign-line-game: 'Game %d'
-reload-msg: 'RELOAD: The game will stop !'
+reload-msg: 'RELOAD: The game will stop!'
 stat-waiting: 'Waiting...'
-stat-start-count: 'Start in %ds'
+stat-start-count: 'Starting in %ds'
 stat-in-game: 'In game...'
 stat-finished: 'Finished'
 chat-start-count: 'The game will start in %d seconds'
 chat-game-join: 'You join the game number %d'
-chat-game-full: 'This game is already full !'
-chat-game-in-game: 'This game is already started !'
-chat-no-game: 'You aren''t in a game !'
-chat-win-public: '&e%s &7won the Replica game !'
-chat-win-private: 'You won the game !'
-chat-lose-public: '&e%s &7was eradicated of the game !'
-chat-lose-private: 'You were eradicated !'
+chat-game-full: 'This game is already full!'
+chat-game-in-game: 'This game has already started!'
+chat-no-game: 'You aren''t in a game!'
+chat-win-public: '&e%s &7won the Replica game!'
+chat-win-private: 'You won the game!'
+chat-lose-public: '&e%s &7was eradicated of the game!'
+chat-lose-private: 'You were eradicated!'
 chat-use-leave: 'Please use &e/replica leave &7to leave the game.'
